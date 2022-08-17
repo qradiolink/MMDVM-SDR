@@ -32,23 +32,23 @@
 #define MODE_YSF
 
 // Enable P25 phase 1 support.
-#define MODE_P25
+//#define MODE_P25
 
 // Enable NXDN support, the boxcar filter sometimes improves the performance of NXDN receive on some systems.
-#define MODE_NXDN
-#define USE_NXDN_BOXCAR
+//#define MODE_NXDN
+//#define USE_NXDN_BOXCAR
 
 // Enable M17 support.
 #define MODE_M17
 
 // Enable POCSAG support.
-#define MODE_POCSAG
+//#define MODE_POCSAG
 
 // Enable FM support.
-#define MODE_FM
+//#define MODE_FM
 
 // Enable AX.25 support, this is only enabled if FM is also enabled.
-#define MODE_AX25
+//#define MODE_AX25
 
 // Allow for the use of high quality external clock oscillators
 // The number is the frequency of the oscillator in Hertz.
@@ -72,7 +72,7 @@
 #define SERIAL_SPEED 460800	// Only works on newer boards like fast M4, M7, Teensy 3.x. External FM should work with this
 
 // Use pins to output the current mode via LEDs
-#define MODE_LEDS
+//#define MODE_LEDS
 
 // For the original Arduino Due pin layout
 // #define ARDUINO_DUE_PAPA
@@ -99,10 +99,10 @@
 // #define VK6MST_TEENSY_PI3_SHIELD_I2C
 
 // Pass RSSI information to the host
-#define SEND_RSSI_DATA
+//#define SEND_RSSI_DATA
 
 // Use the modem as a serial repeater for Nextion displays
-#define SERIAL_REPEATER
+//#define SERIAL_REPEATER
 
 // Use the modem as an I2C repeater for OLED displays
 // #define I2C_REPEATER
@@ -118,13 +118,13 @@
 // #define USE_ALTERNATE_NXDN_LEDS
 
 // Use the D-Star and P25 LEDs for M17
-#define USE_ALTERNATE_M17_LEDS
+//#define USE_ALTERNATE_M17_LEDS
 
 // Use the D-Star and DMR LEDs for POCSAG
-#define USE_ALTERNATE_POCSAG_LEDS
+//#define USE_ALTERNATE_POCSAG_LEDS
 
 // Use the D-Star and YSF LEDs for FM
-#define USE_ALTERNATE_FM_LEDS
+//#define USE_ALTERNATE_FM_LEDS
 
 #if defined(STM32F1_POG)
 // Slower boards need to run their serial at 115200 baud

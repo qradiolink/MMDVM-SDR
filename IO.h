@@ -22,15 +22,19 @@
 #include "Globals.h"
 
 #include "RingBuffer.h"
+#include <zmq.hpp>
+#include <chrono>
 
 struct TSample {
-  volatile uint16_t sample;
+  volatile int16_t sample;
   volatile uint8_t control;
 };
 
 class CIO {
 public:
   CIO();
+  
+  void setCN(int cn);
 
   void start();
 
@@ -38,13 +42,15 @@ public:
 
   void write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t* control = NULL);
 
-  uint16_t getSpace() const;
+  uint16_t getSpace();
+  void resetTXBuf();
 
   void setDecode(bool dcd);
   void setADCDetection(bool detect);
   void setMode(MMDVM_STATE state);
   
   void interrupt();
+  void interruptRX();
 
   void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t m17TXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, uint8_t ax25TXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout);
 
@@ -70,6 +76,9 @@ private:
   CRingBuffer<TSample>  m_rxBuffer;
   CRingBuffer<TSample>  m_txBuffer;
   CRingBuffer<uint16_t> m_rssiBuffer;
+
+  pthread_t            m_thread;
+  pthread_t            m_threadRX;
 
 #if defined(USE_DCBLOCKER)
   arm_biquad_casd_df1_inst_q31 m_dcFilter;
@@ -142,11 +151,26 @@ private:
   volatile uint32_t    m_watchdog;
 
   bool                 m_lockout;
+  zmq::context_t m_zmqcontext;
+  zmq::socket_t m_zmqsocket;
+  std::vector<short> m_samplebuf;
+  std::vector<uint8_t> m_controlbuf;
+  
+  zmq::context_t m_zmqcontextRX;
+  zmq::socket_t m_zmqsocketRX;
+  int m_channelNumber;
+  pthread_mutex_t m_TXlock;
+  pthread_mutex_t m_RXlock;
+  bool m_txDelayCounterStarted;
+  std::chrono::high_resolution_clock::time_point t1;
+  std::chrono::high_resolution_clock::time_point t2;
+  bool m_COSint;
 
   // Hardware specific routines
   void initInt();
   void startInt();
-
+  static void* helper(void* arg);
+  static void* helperRX(void* arg);
   bool getCOSInt();
 
   void setLEDInt(bool on);

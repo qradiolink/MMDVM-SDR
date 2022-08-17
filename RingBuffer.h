@@ -28,7 +28,7 @@
 #include "stm32f1xx.h"
 #include <cstddef>
 #else
-#include <Arduino.h>
+//#include <Arduino.h>
 #undef PI
 #endif
 
@@ -38,11 +38,13 @@
 #define  ARM_MATH_CM7
 #elif defined(STM32F4XX) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
 #define  ARM_MATH_CM4
+#elif defined(RPI)
+//#define RPI
 #else
 #error "Unknown processor type"
 #endif
 
-#include <arm_math.h>
+//#include <arm_math.h>
 
 template <typename TDATATYPE>
 class CRingBuffer {

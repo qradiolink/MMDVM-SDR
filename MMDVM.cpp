@@ -18,23 +18,27 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if defined(STM32F4XX) || defined(STM32F7XX) || defined(STM32F105xC)
+#if defined(STM32F4XX) || defined(STM32F7XX) || defined(STM32F105xC) || defined(RPI)
 
 #include "Config.h"
 #include "Globals.h"
 
+#include "unistd.h"
+#include <getopt.h>
+
 // Global variables
 MMDVM_STATE m_modemState = STATE_IDLE;
 
-bool m_dstarEnable  = true;
-bool m_dmrEnable    = true;
-bool m_ysfEnable    = true;
-bool m_p25Enable    = true;
-bool m_nxdnEnable   = true;
+bool m_dstarEnable = true;
+bool m_dmrEnable   = true;
+bool m_ysfEnable   = true;
+bool m_p25Enable   = true;
+bool m_nxdnEnable  = true;
 bool m_m17Enable    = true;
 bool m_pocsagEnable = true;
 bool m_fmEnable     = true;
 bool m_ax25Enable   = true;
+
 
 bool m_duplex = true;
 
@@ -108,9 +112,10 @@ CCWIdTX cwIdTX;
 CSerialPort serial;
 CIO io;
 
-void setup()
+void setup(int cn)
 {
-  serial.start();
+ serial.start(cn);
+ io.setCN(cn);
 }
 
 void loop()
@@ -206,11 +211,32 @@ void loop()
 
   if (m_modemState == STATE_IDLE)
     cwIdTX.process();
+  
+  struct timespec local_time;
+  clock_gettime(CLOCK_REALTIME, &local_time);
+
+  local_time.tv_nsec += 5000;
+  if(local_time.tv_nsec > 999999999)
+  {
+      local_time.tv_sec++;
+      local_time.tv_nsec -= 1000000000;
+  }
+  clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &local_time, NULL);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-  setup();
+  int opt, cn;
+  while ((opt = getopt(argc, argv, "c:")) != -1) {
+    switch (opt) {
+    case 'c':
+        cn = atoi(optarg);;
+        break;
+    default:
+        cn = 0;
+    }
+  }
+  setup(cn);
 
   for (;;)
     loop();

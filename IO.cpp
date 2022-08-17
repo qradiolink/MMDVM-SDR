@@ -22,6 +22,7 @@
 #include "Globals.h"
 #include "IO.h"
 
+
 #if defined(USE_DCBLOCKER)
 // Generated using [b, a] = butter(1, 0.001) in MATLAB
 static q31_t   DC_FILTER[] = {3367972, 0, 3367972, 0, 2140747704, 0}; // {b0, 0, b1, b2, -a1, -a2}
@@ -76,10 +77,11 @@ static q15_t   BOXCAR5_FILTER[] = {12000, 12000, 12000, 12000, 12000, 0};
 const uint16_t BOXCAR5_FILTER_LEN = 6U;
 #endif
 
-const uint16_t DC_OFFSET = 2048U;
+const uint16_t DC_OFFSET = 0U; //2048U; The SDR transmits samples centered on zero
 
 CIO::CIO() :
 m_started(false),
+m_thread(),
 m_rxBuffer(RX_RINGBUFFER_SIZE),
 m_txBuffer(TX_RINGBUFFER_SIZE),
 m_rssiBuffer(RX_RINGBUFFER_SIZE),
@@ -139,7 +141,9 @@ m_detect(false),
 m_adcOverflow(0U),
 m_dacOverflow(0U),
 m_watchdog(0U),
-m_lockout(false)
+m_lockout(false),
+m_channelNumber(0),
+m_txDelayCounterStarted(false)
 {
 #if defined(USE_DCBLOCKER)
   ::memset(m_dcState, 0x00U, 4U * sizeof(q31_t));
@@ -207,6 +211,24 @@ m_lockout(false)
   initInt();
   
   selfTest();
+  setCOSInt(false);
+  
+}
+
+void CIO::setCN(int cn)
+{
+  DEBUG2("Using SDR channel %d", cn);
+  m_channelNumber = cn;
+  m_zmqcontext = zmq::context_t(1);
+  m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_PUSH);
+  m_zmqsocket.setsockopt(ZMQ_SNDHWM, 2);
+  m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx" + std::to_string(cn) + ".ipc");
+  
+  
+  m_zmqcontextRX = zmq::context_t(1);
+  m_zmqsocketRX = zmq::socket_t(m_zmqcontextRX, ZMQ_PULL);
+  m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 2);
+  m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx" + std::to_string(cn) + ".ipc");
 }
 
 void CIO::selfTest()
@@ -368,20 +390,30 @@ void CIO::process()
   }
 
   if (m_useCOSAsLockout)
-    m_lockout = getCOSInt();
+    //m_lockout = getCOSInt();
 
+    ::pthread_mutex_lock(&m_TXlock);
   // Switch off the transmitter if needed
   if (m_txBuffer.getData() == 0U && m_tx) {
     m_tx = false;
     setPTTInt(m_pttInvert ? true : false);
     DEBUG1("TX OFF");
   }
+  ::pthread_mutex_unlock(&m_TXlock);
 
-  if (m_rxBuffer.getData() >= RX_BLOCK_SIZE) {
+  ::pthread_mutex_lock(&m_RXlock);
+  u_int16_t block_size = m_rxBuffer.getData();
+  ::pthread_mutex_unlock(&m_RXlock);
+  
+  if (block_size >= RX_BLOCK_SIZE) {
+    uint16_t num_blocks = block_size / RX_BLOCK_SIZE;
+    for(uint16_t block_no = 0;block_no < num_blocks; block_no++)
+    {
     q15_t    samples[RX_BLOCK_SIZE];
     uint8_t  control[RX_BLOCK_SIZE];
     uint16_t rssi[RX_BLOCK_SIZE];
 
+    ::pthread_mutex_lock(&m_RXlock);
     for (uint16_t i = 0U; i < RX_BLOCK_SIZE; i++) {
       TSample sample;
       m_rxBuffer.get(sample);
@@ -389,16 +421,18 @@ void CIO::process()
       m_rssiBuffer.get(rssi[i]);
 
       // Detect ADC overflow
-      if (m_detect && (sample.sample == 0U || sample.sample == 4095U))
-        m_adcOverflow++;
+      //if (m_detect && (sample.sample == 0U || sample.sample == 4095U))
+      //  m_adcOverflow++;
 
       q15_t res1 = q15_t(sample.sample) - m_rxDCOffset;
       q31_t res2 = res1 * m_rxLevel;
       samples[i] = q15_t(__SSAT((res2 >> 15), 16));
     }
+    ::pthread_mutex_unlock(&m_RXlock);
 
-    if (m_lockout)
-      return;
+    //if (m_lockout)
+    //  return;
+
 
 #if defined(USE_DCBLOCKER)
     q31_t q31Samples[RX_BLOCK_SIZE];
@@ -657,6 +691,7 @@ void CIO::process()
       calRSSI.samples(rssi, RX_BLOCK_SIZE);
     }
   }
+  }
 }
 
 void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t* control)
@@ -707,26 +742,40 @@ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t
       txLevel = m_cwIdTXLevel;
       break;
   }
-
+    ::pthread_mutex_lock(&m_TXlock);
   for (uint16_t i = 0U; i < length; i++) {
     q31_t res1 = samples[i] * txLevel;
     q15_t res2 = q15_t(__SSAT((res1 >> 15), 16));
-    uint16_t res3 = uint16_t(res2 + m_txDCOffset);
+    int16_t res3 = int16_t(res2 + m_txDCOffset);
 
     // Detect DAC overflow
-    if (res3 > 4095U)
-      m_dacOverflow++;
+    //if (res3 > 4095U)
+      //m_dacOverflow++;
 
     if (control == NULL)
       m_txBuffer.put({res3, MARK_NONE});
     else
       m_txBuffer.put({res3, control[i]});
   }
+  ::pthread_mutex_unlock(&m_TXlock);
 }
 
-uint16_t CIO::getSpace() const
+uint16_t CIO::getSpace() 
 {
-  return m_txBuffer.getSpace();
+    ::pthread_mutex_lock(&m_TXlock);
+    u_int16_t space = m_txBuffer.getSpace();
+    ::pthread_mutex_unlock(&m_TXlock);
+  return space;
+}
+
+void CIO::resetTXBuf() 
+{
+    TSample sample;
+    ::pthread_mutex_lock(&m_TXlock);
+    while(m_txBuffer.get(sample))
+    {
+    }
+    ::pthread_mutex_unlock(&m_TXlock);
 }
 
 void CIO::setDecode(bool dcd)
@@ -822,12 +871,18 @@ void CIO::getOverflow(bool& adcOverflow, bool& dacOverflow)
 
 bool CIO::hasTXOverflow()
 {
-  return m_txBuffer.hasOverflowed();
+    ::pthread_mutex_lock(&m_TXlock);
+    bool has_overflowed = m_txBuffer.hasOverflowed();
+    ::pthread_mutex_unlock(&m_TXlock);
+  return has_overflowed;
 }
 
 bool CIO::hasRXOverflow()
 {
-  return m_rxBuffer.hasOverflowed();
+    ::pthread_mutex_lock(&m_RXlock);
+    bool has_overflowed = m_rxBuffer.hasOverflowed();
+    ::pthread_mutex_unlock(&m_RXlock);
+  return has_overflowed;
 }
 
 void CIO::resetWatchdog()

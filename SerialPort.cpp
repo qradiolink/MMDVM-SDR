@@ -143,7 +143,10 @@ m_debug(false),
 m_serialData(),
 m_lastSerialAvail(0),
 m_lastSerialAvailCount(0U),
-m_i2CData()
+m_i2CData(),
+#if defined(RPI)
+m_controller()
+#endif
 {
 }
 
@@ -892,9 +895,9 @@ void CSerialPort::setMode(MMDVM_STATE modemState)
   io.setMode(modemState);
 }
 
-void CSerialPort::start()
+void CSerialPort::start(int cn)
 {
-  beginInt(1U, SERIAL_SPEED);
+  beginInt(1U, SERIAL_SPEED, cn);
 
 #if defined(SERIAL_REPEATER)
   beginInt(3U, 9600);

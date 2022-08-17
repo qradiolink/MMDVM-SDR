@@ -22,6 +22,7 @@
 #include "Config.h"
 #include "Globals.h"
 #include "RingBuffer.h"
+#include "SerialController.h"
 
 #if !defined(SERIAL_SPEED)
 #define SERIAL_SPEED 115200
@@ -32,7 +33,7 @@ class CSerialPort {
 public:
   CSerialPort();
 
-  void start();
+  void start(int cn=0);
 
   void process();
 
@@ -108,6 +109,9 @@ private:
   int       m_lastSerialAvail;
   uint16_t  m_lastSerialAvailCount;
   CRingBuffer<uint8_t> m_i2CData;
+#if defined(RPI)
+  CSerialController m_controller;
+#endif
 
   void    sendACK(uint8_t type);
   void    sendNAK(uint8_t type, uint8_t err);
@@ -126,7 +130,7 @@ private:
 #endif
 
   // Hardware versions
-  void    beginInt(uint8_t n, int speed);
+  void beginInt(uint8_t n, int speed, int cn);
   int     availableForReadInt(uint8_t n);
   int     availableForWriteInt(uint8_t n);
   uint8_t readInt(uint8_t n);

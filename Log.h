@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015,2016,2020 by Jonathan Naylor G4KLX
+ *   Copyright (C) 2015,2016 by Jonathan Naylor G4KLX
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,30 +16,21 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#if !defined(UTILS_H)
-#define  UTILS_H
+#if !defined(LOG_H)
+#define	LOG_H
 
-#if defined(STM32F4XX)
-#include "stm32f4xx.h"
-#elif defined(STM32F7XX)
-#include "stm32f7xx.h"
-#elif defined(STM32F105xC)
-#include "stm32f1xx.h"
-#include <cstddef>
-#elif defined(RPI)
-#include <stdint.h>
-#include <cstddef>
-#else
-#include <Arduino.h>
-#endif
+#include <string>
 
-uint8_t countBits8(uint8_t bits);
+#define	LogDebug(fmt, ...)	Log(1U, fmt, ##__VA_ARGS__)
+#define	LogMessage(fmt, ...)	Log(2U, fmt, ##__VA_ARGS__)
+#define	LogInfo(fmt, ...)	Log(3U, fmt, ##__VA_ARGS__)
+#define	LogWarning(fmt, ...)	Log(4U, fmt, ##__VA_ARGS__)
+#define	LogError(fmt, ...)	Log(5U, fmt, ##__VA_ARGS__)
+#define	LogFatal(fmt, ...)	Log(6U, fmt, ##__VA_ARGS__)
 
-uint8_t countBits16(uint16_t bits);
+extern void Log(unsigned int level, const char* fmt, ...);
 
-uint8_t countBits32(uint32_t bits);
-
-uint8_t countBits64(uint64_t bits);
+extern bool LogInitialise(const std::string& filePath, const std::string& fileRoot, unsigned int fileLevel, unsigned int displayLevel);
+extern void LogFinalise();
 
 #endif
-

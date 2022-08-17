@@ -26,6 +26,10 @@
 #elif defined(STM32F105xC)
 #include "stm32f1xx.h"
 #include "STM32Utils.h"
+#elif defined(RPI)
+#include <stdint.h>
+#include <cstddef>
+#include <cstring>
 #else
 #include <Arduino.h>
 #undef PI //Undefine PI to get rid of annoying warning as it is also defined in arm_math.h.
@@ -33,15 +37,19 @@
 
 #if defined(__SAM3X8E__) || defined(STM32F105xC)
 #define  ARM_MATH_CM3
+#include <arm_math.h>
 #elif defined(STM32F7XX)
 #define  ARM_MATH_CM7
+#include <arm_math.h>
 #elif defined(STM32F4XX) || defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
 #define  ARM_MATH_CM4
+#include <arm_math.h>
+#elif defined(RPI)
+#include <arm_math_rpi.h>
 #else
 #error "Unknown processor type"
 #endif
 
-#include <arm_math.h>
 
 enum MMDVM_STATE {
   STATE_IDLE      = 0,
@@ -115,8 +123,8 @@ const uint8_t  MARK_NONE  = 0x00U;
 
 const uint16_t RX_BLOCK_SIZE = 2U;
 
-const uint16_t TX_RINGBUFFER_SIZE = 500U;
-const uint16_t RX_RINGBUFFER_SIZE = 600U;
+const uint16_t TX_RINGBUFFER_SIZE = 721U;
+const uint16_t RX_RINGBUFFER_SIZE = 960U;
 
 #if defined(STM32F105xC) || defined(__MK20DX256__)
 const uint16_t TX_BUFFER_LEN = 2000U;
