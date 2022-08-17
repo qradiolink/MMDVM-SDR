@@ -32,17 +32,17 @@
 #define MODE_YSF
 
 // Enable P25 phase 1 support.
-//#define MODE_P25
+#define MODE_P25
 
 // Enable NXDN support, the boxcar filter sometimes improves the performance of NXDN receive on some systems.
-//#define MODE_NXDN
-//#define USE_NXDN_BOXCAR
+#define MODE_NXDN
+#define USE_NXDN_BOXCAR
 
 // Enable M17 support.
 #define MODE_M17
 
 // Enable POCSAG support.
-//#define MODE_POCSAG
+#define MODE_POCSAG
 
 // Enable FM support.
 //#define MODE_FM
@@ -99,7 +99,7 @@
 // #define VK6MST_TEENSY_PI3_SHIELD_I2C
 
 // Pass RSSI information to the host
-//#define SEND_RSSI_DATA
+#define SEND_RSSI_DATA
 
 // Use the modem as a serial repeater for Nextion displays
 //#define SERIAL_REPEATER
@@ -108,7 +108,7 @@
 // #define I2C_REPEATER
 
 // To reduce CPU load, you can remove the DC blocker by commenting out the next line
-#define USE_DCBLOCKER
+//#define USE_DCBLOCKER
 
 // Constant Service LED once repeater is running 
 // Do not use if employing an external hardware watchdog 
