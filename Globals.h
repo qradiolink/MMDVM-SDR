@@ -45,7 +45,7 @@
 #define  ARM_MATH_CM4
 #include <arm_math.h>
 #elif defined(RPI)
-#include <arm_math_rpi.h>
+#include "arm_math_rpi.h"
 #else
 #error "Unknown processor type"
 #endif
