@@ -24,6 +24,7 @@
 #define  YSFTX_H
 
 #include "RingBuffer.h"
+#include <chrono>
 
 class CYSFTX {
 public:
@@ -53,6 +54,7 @@ private:
 
   void writeByte(uint8_t c);
   void writeSilence();
+  std::chrono::high_resolution_clock::time_point t1;
 };
 
 #endif

@@ -166,10 +166,11 @@ void CM17RX::processNone(q15_t sample)
 void CM17RX::processData(q15_t sample)
 {
   bool eof = false;
+  bool ret = false;
 
   if (m_minSyncPtr < m_maxSyncPtr) {
     if (m_dataPtr >= m_minSyncPtr && m_dataPtr <= m_maxSyncPtr) {
-      bool ret = correlateSync(M17_STREAM_SYNC_SYMBOLS, M17_STREAM_SYNC_SYMBOLS_VALUES, M17_STREAM_SYNC_BYTES,  MAX_SYNC_SYMBOL_RUN_ERRS, MAX_SYNC_BIT_RUN_ERRS);
+      ret = correlateSync(M17_STREAM_SYNC_SYMBOLS, M17_STREAM_SYNC_SYMBOLS_VALUES, M17_STREAM_SYNC_BYTES,  MAX_SYNC_SYMBOL_RUN_ERRS, MAX_SYNC_BIT_RUN_ERRS);
 
       eof = correlateSync(M17_EOF_SYNC_SYMBOLS, M17_EOF_SYNC_SYMBOLS_VALUES, M17_EOF_SYNC_BYTES, MAX_SYNC_SYMBOL_RUN_ERRS, MAX_SYNC_BIT_RUN_ERRS);
 
@@ -177,7 +178,7 @@ void CM17RX::processData(q15_t sample)
     }
   } else {
     if (m_dataPtr >= m_minSyncPtr || m_dataPtr <= m_maxSyncPtr) {
-      bool ret = correlateSync(M17_STREAM_SYNC_SYMBOLS, M17_STREAM_SYNC_SYMBOLS_VALUES, M17_STREAM_SYNC_BYTES,  MAX_SYNC_SYMBOL_RUN_ERRS, MAX_SYNC_BIT_RUN_ERRS);
+      ret = correlateSync(M17_STREAM_SYNC_SYMBOLS, M17_STREAM_SYNC_SYMBOLS_VALUES, M17_STREAM_SYNC_BYTES,  MAX_SYNC_SYMBOL_RUN_ERRS, MAX_SYNC_BIT_RUN_ERRS);
 
       eof = correlateSync(M17_EOF_SYNC_SYMBOLS, M17_EOF_SYNC_SYMBOLS_VALUES, M17_EOF_SYNC_BYTES, MAX_SYNC_SYMBOL_RUN_ERRS, MAX_SYNC_BIT_RUN_ERRS);
 
@@ -185,7 +186,7 @@ void CM17RX::processData(q15_t sample)
     }
   }
 
-  if (eof) {
+  if (eof && !ret) {
     DEBUG4("M17RX: eof sync found pos/centre/threshold", m_syncPtr, m_centreVal, m_thresholdVal);
 
     io.setDecode(false);

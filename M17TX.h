@@ -24,6 +24,7 @@
 #define  M17TX_H
 
 #include "RingBuffer.h"
+#include <chrono>
 
 class CM17TX {
 public:
@@ -52,6 +53,7 @@ private:
 
   void writeByte(uint8_t c);
   void writeSilence();
+  std::chrono::high_resolution_clock::time_point t1;
 };
 
 #endif

@@ -95,10 +95,15 @@ void CM17TX::process()
       if (m_poPtr >= m_poLen) {
         m_poPtr = 0U;
         m_poLen = 0U;
+        t1 = std::chrono::high_resolution_clock::now();
         return;
       }
     }
   } else if (m_txCount > 0U) {
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    int64_t elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+    if(elapsed_time < 60000000L)
+        return;
     // Transmit silence until the hang timer has expired.
     uint16_t space = io.getSpace();
 

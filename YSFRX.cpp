@@ -155,7 +155,6 @@ void CYSFRX::processNone(q15_t sample)
 
 void CYSFRX::processData(q15_t sample)
 {
-    /*
   if (m_minSyncPtr < m_maxSyncPtr) {
     if (m_dataPtr >= m_minSyncPtr && m_dataPtr <= m_maxSyncPtr)
       correlateSync();
@@ -163,8 +162,6 @@ void CYSFRX::processData(q15_t sample)
     if (m_dataPtr >= m_minSyncPtr || m_dataPtr <= m_maxSyncPtr)
       correlateSync();
   }
-  */
-    correlateSync();
 
   if (m_dataPtr == m_endPtr) {
     // Only update the centre and threshold if they are from a good sync

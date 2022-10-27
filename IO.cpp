@@ -221,13 +221,13 @@ void CIO::setCN(int cn)
   m_channelNumber = cn;
   m_zmqcontext = zmq::context_t(1);
   m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_PUSH);
-  m_zmqsocket.setsockopt(ZMQ_SNDHWM, 2);
+  m_zmqsocket.setsockopt(ZMQ_SNDHWM, 10);
   m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx" + std::to_string(cn) + ".ipc");
   
   
   m_zmqcontextRX = zmq::context_t(1);
   m_zmqsocketRX = zmq::socket_t(m_zmqcontextRX, ZMQ_PULL);
-  m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 2);
+  m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 10);
   m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx" + std::to_string(cn) + ".ipc");
 }
 
