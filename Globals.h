@@ -124,7 +124,7 @@ const uint8_t  MARK_NONE  = 0x00U;
 const uint16_t RX_BLOCK_SIZE = 2U;
 
 const uint16_t TX_RINGBUFFER_SIZE = 721U;
-const uint16_t RX_RINGBUFFER_SIZE = 960U;
+const uint16_t RX_RINGBUFFER_SIZE = 1442U;
 
 #if defined(STM32F105xC) || defined(__MK20DX256__)
 const uint16_t TX_BUFFER_LEN = 2000U;
