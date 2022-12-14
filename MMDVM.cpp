@@ -215,7 +215,7 @@ void loop()
   struct timespec local_time;
   clock_gettime(CLOCK_REALTIME, &local_time);
 
-  local_time.tv_nsec += 1000000;
+  local_time.tv_nsec += 200000;
   if(local_time.tv_nsec > 999999999)
   {
       local_time.tv_sec++;
