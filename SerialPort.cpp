@@ -550,7 +550,7 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint16_t length)
 
   dmrTX.setColorCode(colorCode);
   dmrRX.setColorCode(colorCode);
-  dmrRX.setDelay(dmrDelay);
+  //dmrRX.setDelay(dmrDelay);
   dmrDMORX.setColorCode(colorCode);
   dmrIdleRX.setColorCode(colorCode);
 #endif
@@ -587,7 +587,7 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint16_t length)
   m_fmEnable     = fmEnable;
 #endif
 
-  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, m17TXLevel, pocsagTXLevel, fmTXLevel, ax25TXLevel, txDCOffset, rxDCOffset, useCOSAsLockout);
+  io.setParameters(rxInvert, txInvert, pttInvert, rxLevel, cwIdTXLevel, dstarTXLevel, dmrTXLevel, ysfTXLevel, p25TXLevel, nxdnTXLevel, m17TXLevel, pocsagTXLevel, fmTXLevel, ax25TXLevel, txDCOffset, rxDCOffset, useCOSAsLockout, dmrDelay);
 
   io.start();
 

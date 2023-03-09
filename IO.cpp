@@ -212,6 +212,7 @@ m_txDelayCounterStarted(false)
   
   selfTest();
   setCOSInt(false);
+  t1 = std::chrono::high_resolution_clock::now();
   
 }
 
@@ -221,13 +222,13 @@ void CIO::setCN(int cn)
   m_channelNumber = cn;
   m_zmqcontext = zmq::context_t(1);
   m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_PUSH);
-  m_zmqsocket.setsockopt(ZMQ_SNDHWM, 10);
+  m_zmqsocket.setsockopt(ZMQ_SNDHWM, 100);
   m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx" + std::to_string(cn) + ".ipc");
   
   
   m_zmqcontextRX = zmq::context_t(1);
   m_zmqsocketRX = zmq::socket_t(m_zmqcontextRX, ZMQ_PULL);
-  m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 10);
+  m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 100);
   m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx" + std::to_string(cn) + ".ipc");
 }
 
@@ -391,15 +392,7 @@ void CIO::process()
 
   //if (m_useCOSAsLockout)
     //m_lockout = getCOSInt();
-
-   ::pthread_mutex_lock(&m_TXlock);
-  // Switch off the transmitter if needed
-  if (m_txBuffer.getData() == 0U && m_tx) {
-    m_tx = false;
-    //setPTTInt(m_pttInvert ? true : false);
-    DEBUG1("TX OFF");
-  }
-  ::pthread_mutex_unlock(&m_TXlock);
+    transmit();
 
   ::pthread_mutex_lock(&m_RXlock);
   u_int16_t block_size = m_rxBuffer.getData();
@@ -706,7 +699,6 @@ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t
   if (!m_tx) {
     m_tx = true;
     setPTTInt(m_pttInvert ? false : true);
-    DEBUG1("TX ON");
   }
 
   q15_t txLevel = 0;
@@ -742,7 +734,7 @@ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t
       txLevel = m_cwIdTXLevel;
       break;
   }
-    ::pthread_mutex_lock(&m_TXlock);
+
   for (uint16_t i = 0U; i < length; i++) {
     q31_t res1 = samples[i] * txLevel;
     q15_t res2 = q15_t(__SSAT((res1 >> 15), 16));
@@ -757,25 +749,20 @@ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t
     else
       m_txBuffer.put({res3, control[i]});
   }
-  ::pthread_mutex_unlock(&m_TXlock);
 }
 
 uint16_t CIO::getSpace() 
 {
-    ::pthread_mutex_lock(&m_TXlock);
     u_int16_t space = m_txBuffer.getSpace();
-    ::pthread_mutex_unlock(&m_TXlock);
-  return space;
+    return space;
 }
 
 void CIO::resetTXBuf() 
 {
     TSample sample;
-    ::pthread_mutex_lock(&m_TXlock);
     while(m_txBuffer.get(sample))
     {
     }
-    ::pthread_mutex_unlock(&m_TXlock);
 }
 
 void CIO::setDecode(bool dcd)
@@ -825,7 +812,7 @@ void CIO::setMode(MMDVM_STATE state)
   m_modemState = state;
 }
 
-void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t m17TXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, uint8_t ax25TXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout)
+void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t m17TXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, uint8_t ax25TXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout, uint8_t dmrDelay)
 {
   m_pttInvert = pttInvert;
 
@@ -858,6 +845,11 @@ void CIO::setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rx
     m_m17TXLevel    = -m_m17TXLevel;
     m_pocsagTXLevel = -m_pocsagTXLevel;
   }
+  if(dmrDelay == 0)
+      dmrDelay = 70;
+  m_dmrDelay = 29000000L + dmrDelay * 10000L;
+  if(m_dmrDelay > 30000000L)
+      m_dmrDelay = 30000000L;
 }
 
 void CIO::getOverflow(bool& adcOverflow, bool& dacOverflow)
@@ -871,10 +863,8 @@ void CIO::getOverflow(bool& adcOverflow, bool& dacOverflow)
 
 bool CIO::hasTXOverflow()
 {
-    ::pthread_mutex_lock(&m_TXlock);
     bool has_overflowed = m_txBuffer.hasOverflowed();
-    ::pthread_mutex_unlock(&m_TXlock);
-  return has_overflowed;
+    return has_overflowed;
 }
 
 bool CIO::hasRXOverflow()
@@ -898,4 +888,44 @@ uint32_t CIO::getWatchdog()
 bool CIO::hasLockout() const
 {
   return m_lockout;
+}
+
+void CIO::transmit()
+{
+    t2 = std::chrono::high_resolution_clock::now();
+    int64_t elapsed =  std::chrono::duration_cast<std::chrono::nanoseconds>(t2-t1).count();
+    if(elapsed < m_dmrDelay)
+        return;
+    if ((elapsed > 120000000L) && m_txBuffer.getData() == 0U && m_tx) {
+        m_tx = false;
+        return;
+    //setPTTInt(m_pttInvert ? true : false);
+   }
+    TSample sample;
+    uint32_t num_items = 720;
+    if(m_txBuffer.getData() >= num_items)
+    {
+        while(m_txBuffer.get(sample))
+        {
+
+            sample.sample *= 5;		// amplify by 12dB
+            m_samplebuf.push_back((int16_t)sample.sample);
+            m_controlbuf.push_back((uint8_t)sample.control);
+
+            if(m_samplebuf.size() >= num_items)
+            {
+                int buf_size = sizeof(uint32_t) + num_items * sizeof(uint8_t) + num_items * sizeof(int16_t);
+
+                zmq::message_t reply (buf_size);
+                memcpy (reply.data (), &num_items, sizeof(uint32_t));
+                memcpy ((unsigned char *)reply.data () + sizeof(uint32_t), (unsigned char *)m_controlbuf.data(), num_items * sizeof(uint8_t));
+                memcpy ((unsigned char *)reply.data () + sizeof(uint32_t) + num_items * sizeof(uint8_t),
+                        (unsigned char *)m_samplebuf.data(), num_items*sizeof(int16_t));
+                m_zmqsocket.send (reply, zmq::send_flags::dontwait);
+                m_samplebuf.erase(m_samplebuf.begin(), m_samplebuf.begin()+num_items);
+                m_controlbuf.erase(m_controlbuf.begin(), m_controlbuf.begin()+num_items);
+                t1 = std::chrono::high_resolution_clock::now();
+            }
+        }
+    }
 }
