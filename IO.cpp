@@ -220,7 +220,7 @@ void CIO::setCN(int cn)
   DEBUG2("Using SDR channel %d", cn);
   m_channelNumber = cn;
   m_zmqcontext = zmq::context_t(1);
-  m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_PUSH);
+  m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_REP);
   m_zmqsocket.setsockopt(ZMQ_SNDHWM, 10);
   m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx" + std::to_string(cn) + ".ipc");
   
