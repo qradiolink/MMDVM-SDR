@@ -229,6 +229,8 @@ void CIO::setCN(int cn)
   m_zmqsocketRX = zmq::socket_t(m_zmqcontextRX, ZMQ_PULL);
   m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 10);
   m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx" + std::to_string(cn) + ".ipc");
+  // Start the TX and RX ZMQ threads
+  startInt();
 }
 
 void CIO::selfTest()
@@ -346,8 +348,6 @@ void CIO::start()
 {
   if (m_started)
     return;
-
-  startInt();
 
   m_started = true;
 

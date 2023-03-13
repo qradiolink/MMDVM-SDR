@@ -125,7 +125,7 @@ void CIO::interrupt()
                 memcpy ((unsigned char *)reply.data () + sizeof(uint32_t), (unsigned char *)m_controlbuf.data(), num_items * sizeof(uint8_t));
                 memcpy ((unsigned char *)reply.data () + sizeof(uint32_t) + num_items * sizeof(uint8_t),
                         (unsigned char *)m_samplebuf.data(), num_items*sizeof(int16_t));
-                m_zmqsocket.send (reply, zmq::send_flags::none);
+                m_zmqsocket.send (reply, zmq::send_flags::dontwait);
                 m_samplebuf.erase(m_samplebuf.begin(), m_samplebuf.begin()+num_items);
                 m_controlbuf.erase(m_controlbuf.begin(), m_controlbuf.begin()+num_items);
             }
