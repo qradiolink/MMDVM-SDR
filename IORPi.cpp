@@ -54,22 +54,20 @@ void CIO::startInt()
 {
     
 	DEBUG1("IO Int start()");
-    /*
     if (::pthread_mutex_init(&m_TXlock, NULL) != 0)
     {
         printf("\n Tx mutex init failed\n");
         exit(1);;
     }
-    */
     if (::pthread_mutex_init(&m_RXlock, NULL) != 0)
     {
         printf("\n RX mutex init failed\n");
         exit(1);;
     }
 
-    //::pthread_create(&m_thread, NULL, helper, this);
+    ::pthread_create(&m_thread, NULL, helper, this);
     ::pthread_create(&m_threadRX, NULL, helperRX, this);
-    //::pthread_setname_np(m_thread, "mmdvm_tx");
+    ::pthread_setname_np(m_thread, "mmdvm_tx");
     ::pthread_setname_np(m_threadRX, "mmdvm_rx");
 }
 

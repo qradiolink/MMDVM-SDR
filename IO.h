@@ -52,7 +52,7 @@ public:
   void interrupt();
   void interruptRX();
 
-  void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t m17TXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, uint8_t ax25TXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout, uint8_t dmrDelay);
+  void setParameters(bool rxInvert, bool txInvert, bool pttInvert, uint8_t rxLevel, uint8_t cwIdTXLevel, uint8_t dstarTXLevel, uint8_t dmrTXLevel, uint8_t ysfTXLevel, uint8_t p25TXLevel, uint8_t nxdnTXLevel, uint8_t m17TXLevel, uint8_t pocsagTXLevel, uint8_t fmTXLevel, uint8_t ax25TXLevel, int16_t txDCOffset, int16_t rxDCOffset, bool useCOSAsLockout);
 
   void getOverflow(bool& adcOverflow, bool& dacOverflow);
 
@@ -159,7 +159,6 @@ private:
   zmq::context_t m_zmqcontextRX;
   zmq::socket_t m_zmqsocketRX;
   int m_channelNumber;
-  int64_t m_dmrDelay;
   pthread_mutex_t m_TXlock;
   pthread_mutex_t m_RXlock;
   bool m_txDelayCounterStarted;
@@ -188,7 +187,6 @@ private:
   void setFMInt(bool on);
   
   void delayInt(unsigned int dly);
-  void transmit();
 };
 
 #endif
