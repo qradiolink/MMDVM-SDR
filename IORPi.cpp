@@ -101,7 +101,10 @@ void CIO::interrupt()
 
     TSample sample;
     uint32_t num_items = 720;
-    bool wait_for_data = false;
+    zmq::message_t request_message;
+    zmq::recv_result_t recv_result = m_zmqsocket.recv(request_message);
+    if(request_message.size() < 1)
+        return;
     ::pthread_mutex_lock(&m_TXlock);
     if(m_txBuffer.getData() >= num_items)
     {
@@ -123,7 +126,6 @@ void CIO::interrupt()
                 memcpy ((unsigned char *)reply.data () + sizeof(uint32_t) + num_items * sizeof(uint8_t),
                         (unsigned char *)m_samplebuf.data(), num_items*sizeof(int16_t));
                 m_zmqsocket.send (reply, zmq::send_flags::dontwait);
-                wait_for_data = true;
                 m_samplebuf.erase(m_samplebuf.begin(), m_samplebuf.begin()+num_items);
                 m_controlbuf.erase(m_controlbuf.begin(), m_controlbuf.begin()+num_items);
             }
@@ -133,39 +135,12 @@ void CIO::interrupt()
     else
     {
         ::pthread_mutex_unlock(&m_TXlock);
-        struct timespec local_time;
-        clock_gettime(CLOCK_REALTIME, &local_time);
-
-        local_time.tv_nsec += 20000;
-        if(local_time.tv_nsec > 999999999)
-        {
-          local_time.tv_sec++;
-          local_time.tv_nsec -= 1000000000;
-        }
-        clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &local_time, NULL);
+        zmq::message_t reply (sizeof(uint32_t));
+        uint32_t items = 0;
+        memcpy (reply.data (), &items, sizeof(uint32_t));
+        m_zmqsocket.send (reply, zmq::send_flags::dontwait);
     }
        
-   if (wait_for_data)
-   {
-        //tm1 = std::chrono::high_resolution_clock::now();
-        //tm2 = std::chrono::high_resolution_clock::now();
-        //while(std::chrono::duration_cast<std::chrono::nanoseconds>(tm2-tm1).count() < 29900000L)
-        //{
-        //    usleep(10);
-        //    tm2 = std::chrono::high_resolution_clock::now();
-        //}
-       struct timespec local_time;
-       clock_gettime(CLOCK_REALTIME, &local_time);
-
-       local_time.tv_nsec += 29800000;
-       if(local_time.tv_nsec > 999999999)
-       {
-           local_time.tv_sec++;
-           local_time.tv_nsec -= 1000000000;
-       }
-       clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &local_time, NULL);
-       wait_for_data = false;
-   }
    
 #if defined(SEND_RSSI_DATA)
     //m_rssiBuffer.put(ADC->ADC_CDR[RSSI_CDR_Chan]);

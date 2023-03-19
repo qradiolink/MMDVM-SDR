@@ -220,7 +220,7 @@ void CIO::setCN(int cn)
   DEBUG2("Using SDR channel %d", cn);
   m_channelNumber = cn;
   m_zmqcontext = zmq::context_t(1);
-  m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_PUSH);
+  m_zmqsocket = zmq::socket_t(m_zmqcontext, ZMQ_REP);
   m_zmqsocket.setsockopt(ZMQ_SNDHWM, 10);
   m_zmqsocket.bind ("ipc:///tmp/mmdvm-tx" + std::to_string(cn) + ".ipc");
   
@@ -229,6 +229,8 @@ void CIO::setCN(int cn)
   m_zmqsocketRX = zmq::socket_t(m_zmqcontextRX, ZMQ_PULL);
   m_zmqsocketRX.setsockopt(ZMQ_RCVHWM, 10);
   m_zmqsocketRX.connect ("ipc:///tmp/mmdvm-rx" + std::to_string(cn) + ".ipc");
+  // Start the TX and RX ZMQ threads
+  startInt();
 }
 
 void CIO::selfTest()
@@ -346,8 +348,6 @@ void CIO::start()
 {
   if (m_started)
     return;
-
-  startInt();
 
   m_started = true;
 
