@@ -67,6 +67,7 @@ private:
   q15_t                            m_modState[16U];    // blockSize + phaseLength - 1, 4 + 9 - 1 plus some spare
   DMRTXSTATE                       m_state;
   uint8_t                          m_idle[DMR_FRAME_LENGTH_BYTES];
+  uint8_t                          m_aloha[DMR_FRAME_LENGTH_BYTES];
   uint8_t                          m_cachPtr;
   uint8_t                          m_shortLC[12U];
   uint8_t                          m_newShortLC[12U];

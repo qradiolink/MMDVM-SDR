@@ -397,7 +397,7 @@ void CIO::process()
   if (m_txBuffer.getData() == 0U && m_tx) {
     m_tx = false;
     //setPTTInt(m_pttInvert ? true : false);
-    DEBUG1("TX OFF");
+    //DEBUG1("TX OFF");
   }
   ::pthread_mutex_unlock(&m_TXlock);
 
@@ -706,7 +706,7 @@ void CIO::write(MMDVM_STATE mode, q15_t* samples, uint16_t length, const uint8_t
   if (!m_tx) {
     m_tx = true;
     setPTTInt(m_pttInvert ? false : true);
-    DEBUG1("TX ON");
+    //DEBUG1("TX ON");
   }
 
   q15_t txLevel = 0;
