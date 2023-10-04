@@ -240,7 +240,7 @@ uint8_t CDMRTX::writeAbort(const uint8_t* data, uint16_t length)
 
 void CDMRTX::setStart(bool start)
 {
-  m_state = start ? DMRTXSTATE_SLOT1 : DMRTXSTATE_IDLE;
+  m_state = start ? DMRTXSTATE_CACH1 : DMRTXSTATE_IDLE;
   if(!start)
   {
     // abort current transmission to avoid tail getting appended to next slot
