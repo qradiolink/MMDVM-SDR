@@ -52,7 +52,7 @@ const uint8_t CACH_INTERLEAVE[] =
 
 const uint8_t EMPTY_SHORT_LC[] = 
         {0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
-const uint8_t ANNOUNCEMENT_SHORT_LC[] = { 0x00, 0xc3, 0x36, 0x63, 0x30, 0x33, 0xaf, 0xa5, 0x0c };
+//const uint8_t ANNOUNCEMENT_SHORT_LC[] = { 0x00, 0xc3, 0x36, 0x63, 0x30, 0x33, 0xaf, 0xa5, 0x0c };
 
 
 const uint8_t BIT_MASK_TABLE[] = {0x80U, 0x40U, 0x20U, 0x10U, 0x08U, 0x04U, 0x02U, 0x01U};
@@ -96,7 +96,6 @@ m_abort()
 
   m_abortCount[0U] = 0U;
   m_abortCount[1U] = 0U;
-  writeShortLC(ANNOUNCEMENT_SHORT_LC, 9U);
 }
 
 void CDMRTX::process()
@@ -378,11 +377,6 @@ void CDMRTX::createCACH(uint8_t txSlotIndex, uint8_t rxSlotIndex)
 
   if (m_cachPtr == 0U) {
     if (m_fifo[0U].getData() == 0U && m_fifo[1U].getData() == 0U)
-    {
-        writeShortLC(ANNOUNCEMENT_SHORT_LC, 9U);
-        ::memcpy(m_shortLC, m_newShortLC, 12U);
-    }
-    else
       ::memcpy(m_shortLC, m_newShortLC, 12U);
   }
 
