@@ -45,6 +45,7 @@ public:
   uint8_t writeData2(const uint8_t* data, uint16_t length);
 
   uint8_t writeShortLC(const uint8_t* data, uint16_t length);
+  uint8_t writeAloha(const uint8_t* data, uint16_t length);
   uint8_t writeAbort(const uint8_t* data, uint16_t length);
 
   void setStart(bool start);

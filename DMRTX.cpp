@@ -216,6 +216,14 @@ uint8_t CDMRTX::writeShortLC(const uint8_t* data, uint16_t length)
   return 0U;
 }
 
+uint8_t CDMRTX::writeAloha(const uint8_t* data, uint16_t length)
+{
+    if (length != DMR_FRAME_LENGTH_BYTES)
+        return 4U;
+    ::memcpy(m_aloha, data, length);
+    return 0U;
+}
+
 uint8_t CDMRTX::writeAbort(const uint8_t* data, uint16_t length)
 {
   if (length != 1U)
@@ -418,7 +426,7 @@ void CDMRTX::createCACH(uint8_t txSlotIndex, uint8_t rxSlotIndex)
 void CDMRTX::setColorCode(uint8_t colorCode)
 {
   ::memcpy(m_idle, IDLE_DATA, DMR_FRAME_LENGTH_BYTES);
-  ::memcpy(m_aloha, ALOHA_DATA, DMR_FRAME_LENGTH_BYTES);
+  //::memcpy(m_aloha, ALOHA_DATA, DMR_FRAME_LENGTH_BYTES);
 
   CDMRSlotType slotType;
   slotType.encode(colorCode, DT_IDLE, m_idle);
