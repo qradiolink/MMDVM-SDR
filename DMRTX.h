@@ -79,6 +79,7 @@ private:
   uint32_t                         m_frameCount;
   uint32_t                         m_abortCount[2U];
   bool                             m_abort[2U];
+  bool                             m_controlChannel;
 
   void createData(uint8_t slotIndex);
   void createCACH(uint8_t txSlotIndex, uint8_t rxSlotIndex);

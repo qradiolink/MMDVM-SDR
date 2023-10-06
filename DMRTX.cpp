@@ -79,7 +79,8 @@ m_poLen(0U),
 m_poPtr(0U),
 m_frameCount(0U),
 m_abortCount(),
-m_abort()
+m_abort(),
+m_controlChannel(false)
 {
   ::memset(m_modState, 0x00U, 16U * sizeof(q15_t));
 
@@ -221,6 +222,7 @@ uint8_t CDMRTX::writeAloha(const uint8_t* data, uint16_t length)
     if (length != DMR_FRAME_LENGTH_BYTES)
         return 4U;
     ::memcpy(m_aloha, data, length);
+    m_controlChannel = true;
     return 0U;
 }
 
@@ -322,7 +324,7 @@ void CDMRTX::createData(uint8_t slotIndex)
   } else {
     m_abort[slotIndex] = false;
     // Transmit an idle message
-    if(slotIndex == 0)
+    if(slotIndex == 0 && m_controlChannel)
     {
         for (unsigned int i = 0U; i < DMR_FRAME_LENGTH_BYTES; i++) {
             m_poBuffer[i]   = m_aloha[i];
@@ -426,7 +428,6 @@ void CDMRTX::createCACH(uint8_t txSlotIndex, uint8_t rxSlotIndex)
 void CDMRTX::setColorCode(uint8_t colorCode)
 {
   ::memcpy(m_idle, IDLE_DATA, DMR_FRAME_LENGTH_BYTES);
-  //::memcpy(m_aloha, ALOHA_DATA, DMR_FRAME_LENGTH_BYTES);
 
   CDMRSlotType slotType;
   slotType.encode(colorCode, DT_IDLE, m_idle);
