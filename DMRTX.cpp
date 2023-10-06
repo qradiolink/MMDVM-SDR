@@ -430,7 +430,7 @@ void CDMRTX::setColorCode(uint8_t colorCode)
   ::memcpy(m_idle, IDLE_DATA, DMR_FRAME_LENGTH_BYTES);
 
   CDMRSlotType slotType;
-  slotType.encode(colorCode, DT_IDLE, m_idle);
+  slotType.encode(colorCode, DT_CSBK, m_idle);
   slotType.encode(colorCode, DT_CSBK, m_aloha);
 }
 
