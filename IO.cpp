@@ -395,7 +395,7 @@ void CIO::process()
    ::pthread_mutex_lock(&m_TXlock);
   // Switch off the transmitter if needed
   if (m_txBuffer.getData() == 0U && m_tx) {
-    m_tx = false;
+    //m_tx = false;
     //setPTTInt(m_pttInvert ? true : false);
     //DEBUG1("TX OFF");
   }

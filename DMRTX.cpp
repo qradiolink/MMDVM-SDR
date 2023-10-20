@@ -60,8 +60,8 @@ const uint8_t BIT_MASK_TABLE[] = {0x80U, 0x40U, 0x20U, 0x10U, 0x08U, 0x04U, 0x02
 #define WRITE_BIT1(p,i,b) p[(i)>>3] = (b) ? (p[(i)>>3] | BIT_MASK_TABLE[(i)&7]) : (p[(i)>>3] & ~BIT_MASK_TABLE[(i)&7])
 #define READ_BIT1(p,i)    (p[(i)>>3] & BIT_MASK_TABLE[(i)&7])
 
-const uint32_t STARTUP_COUNT = 20U;
-const uint32_t ABORT_COUNT = 6U;
+const uint32_t STARTUP_COUNT = 0U;
+const uint32_t ABORT_COUNT = 0U;
 
 CDMRTX::CDMRTX() :
 m_fifo(),
@@ -249,13 +249,18 @@ uint8_t CDMRTX::writeAbort(const uint8_t* data, uint16_t length)
 
 void CDMRTX::setStart(bool start)
 {
-  m_state = start ? DMRTXSTATE_CACH1 : DMRTXSTATE_IDLE;
+  m_state = start ? DMRTXSTATE_SLOT1 : DMRTXSTATE_IDLE;
   if(!start)
   {
     // abort current transmission to avoid tail getting appended to next slot
     m_poLen = 0;
     m_poPtr = 0;
     io.resetTXBuf();
+    m_tx = false;
+  }
+  else
+  {
+      m_tx = true;
   }
  
   m_frameCount = 0U;
