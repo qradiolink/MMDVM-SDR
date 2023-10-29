@@ -392,15 +392,6 @@ void CIO::process()
   //if (m_useCOSAsLockout)
     //m_lockout = getCOSInt();
 
-   ::pthread_mutex_lock(&m_TXlock);
-  // Switch off the transmitter if needed
-  if (m_txBuffer.getData() == 0U && m_tx) {
-    m_tx = false;
-    //setPTTInt(m_pttInvert ? true : false);
-    DEBUG1("TX OFF");
-  }
-  ::pthread_mutex_unlock(&m_TXlock);
-
   ::pthread_mutex_lock(&m_RXlock);
   u_int16_t block_size = m_rxBuffer.getData();
   ::pthread_mutex_unlock(&m_RXlock);

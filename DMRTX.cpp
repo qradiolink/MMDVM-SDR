@@ -241,6 +241,11 @@ void CDMRTX::setStart(bool start)
     m_poLen = 0;
     m_poPtr = 0;
     io.resetTXBuf();
+    m_tx = false;
+  }
+  else
+  {
+      m_tx = true;
   }
  
   m_frameCount = 0U;
