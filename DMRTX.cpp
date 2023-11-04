@@ -60,8 +60,8 @@ const uint8_t BIT_MASK_TABLE[] = {0x80U, 0x40U, 0x20U, 0x10U, 0x08U, 0x04U, 0x02
 #define WRITE_BIT1(p,i,b) p[(i)>>3] = (b) ? (p[(i)>>3] | BIT_MASK_TABLE[(i)&7]) : (p[(i)>>3] & ~BIT_MASK_TABLE[(i)&7])
 #define READ_BIT1(p,i)    (p[(i)>>3] & BIT_MASK_TABLE[(i)&7])
 
-const uint32_t STARTUP_COUNT = 0U;
-const uint32_t ABORT_COUNT = 0U;
+const uint32_t STARTUP_COUNT = 10U;
+const uint32_t ABORT_COUNT = 6U;
 
 CDMRTX::CDMRTX() :
 m_fifo(),
@@ -435,7 +435,7 @@ void CDMRTX::setColorCode(uint8_t colorCode)
   ::memcpy(m_idle, IDLE_DATA, DMR_FRAME_LENGTH_BYTES);
 
   CDMRSlotType slotType;
-  slotType.encode(colorCode, DT_CSBK, m_idle);
+  slotType.encode(colorCode, DT_IDLE, m_idle);
   slotType.encode(colorCode, DT_CSBK, m_aloha);
 }
 
