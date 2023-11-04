@@ -80,7 +80,8 @@ m_poPtr(0U),
 m_frameCount(0U),
 m_abortCount(),
 m_abort(),
-m_controlChannel(false)
+m_controlChannel(false),
+m_trunking(false)
 {
   ::memset(m_modState, 0x00U, 16U * sizeof(q15_t));
 
@@ -329,7 +330,7 @@ void CDMRTX::createData(uint8_t slotIndex)
   } else {
     m_abort[slotIndex] = false;
     // Transmit an idle message
-    if(slotIndex == 0 && m_controlChannel)
+    if(slotIndex == 0 && m_controlChannel && m_trunking)
     {
         for (unsigned int i = 0U; i < DMR_FRAME_LENGTH_BYTES; i++) {
             m_poBuffer[i]   = m_aloha[i];
@@ -435,7 +436,10 @@ void CDMRTX::setColorCode(uint8_t colorCode)
   ::memcpy(m_idle, IDLE_DATA, DMR_FRAME_LENGTH_BYTES);
 
   CDMRSlotType slotType;
-  slotType.encode(colorCode, DT_IDLE, m_idle);
+  if(m_trunking)
+      slotType.encode(colorCode, DT_CSBK, m_idle);
+  else
+      slotType.encode(colorCode, DT_IDLE, m_idle);
   slotType.encode(colorCode, DT_CSBK, m_aloha);
 }
 
@@ -453,6 +457,12 @@ uint32_t CDMRTX::getFrameCount()
 {
   return m_frameCount;
 }
+
+void CDMRTX::setTrunking(bool trunking)
+{
+    m_trunking = trunking;
+}
+
 
 #endif
 

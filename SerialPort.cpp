@@ -520,6 +520,9 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint16_t length)
 #endif
 
 #if defined(MODE_DMR)
+  bool trunking = (data[25U] & 128U) == 128U;
+  bool control_channel = (data[25U] & 64U) == 64U;
+  bool registration_required = (data[25U] & 32U) == 32U;
   uint8_t colorCode = data[26U];
   if (colorCode > 15U)
     return 4U;
@@ -548,7 +551,7 @@ uint8_t CSerialPort::setConfig(const uint8_t* data, uint16_t length)
 #if defined(MODE_DMR)
   m_dmrEnable    = dmrEnable;
   dmrDMOTX.setTXDelay(txDelay);
-
+  dmrTX.setTrunking(trunking);
   dmrTX.setColorCode(colorCode);
   dmrRX.setColorCode(colorCode);
   dmrRX.setDelay(dmrDelay);

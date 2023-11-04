@@ -50,6 +50,7 @@ public:
 
   void setStart(bool start);
   void setCal(bool start);
+  void setTrunking(bool trunking);
 
   void process();
   
@@ -80,6 +81,7 @@ private:
   uint32_t                         m_abortCount[2U];
   bool                             m_abort[2U];
   bool                             m_controlChannel;
+  bool                             m_trunking;
 
   void createData(uint8_t slotIndex);
   void createCACH(uint8_t txSlotIndex, uint8_t rxSlotIndex);
