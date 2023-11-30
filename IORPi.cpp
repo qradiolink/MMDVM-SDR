@@ -161,9 +161,11 @@ void CIO::interruptRX()
     zmq::recv_result_t recv_result = m_zmqsocketRX.recv(mq_message, zmq::recv_flags::none);
     int size = mq_message.size();
     uint32_t data_size = 0;
+    uint32_t rssi = 0;
     if(size < 1)
         return;
     memcpy(&data_size, (unsigned char*)mq_message.data(), sizeof(uint32_t));
+    memcpy(&rssi, (unsigned char*)mq_message.data() + sizeof(uint32_t), sizeof(uint32_t));
     
     u_int16_t rx_buf_space = 0;
     while(rx_buf_space < data_size)
@@ -188,10 +190,10 @@ void CIO::interruptRX()
     for(int i=0;i < data_size;i++)
     {
         int16_t signed_sample = 0;
-        memcpy(&control, (unsigned char*)mq_message.data() + sizeof(uint32_t) + i, sizeof(uint8_t));
-        memcpy(&signed_sample, (unsigned char*)mq_message.data() + sizeof(uint32_t) + data_size * sizeof(uint8_t) + i * sizeof(int16_t), sizeof(int16_t));
+        memcpy(&control, (unsigned char*)mq_message.data() + sizeof(uint32_t) + sizeof(uint32_t) + i, sizeof(uint8_t));
+        memcpy(&signed_sample, (unsigned char*)mq_message.data() + sizeof(uint32_t) + sizeof(uint32_t) + data_size * sizeof(uint8_t) + i * sizeof(int16_t), sizeof(int16_t));
         m_rxBuffer.put({signed_sample, control});
-        m_rssiBuffer.put(0U);
+        m_rssiBuffer.put((uint16_t) rssi);
     }
     ::pthread_mutex_unlock(&m_RXlock);
     return;
